@@ -17,11 +17,13 @@ class FeatureDescriptor(object):
             pooling: 'avg' or 'max'
 
     """
-    def __init__(self, input_shape, batch_size=-1, architecture='vgg16', weights='pretrained', pooling='avg'):
+    def __init__(self, input_shape, batch_size=-1, architecture='vgg16', weights='pretrained', pooling='avg',
+                 input_tensor=False):
         self.input_shape = input_shape
         self.batch_size = batch_size
         self.architecture = architecture
         self.pooling = pooling
+        self.input_tensor = input_tensor
         if weights == "pretrained":
             self.weights = "imagenet"  # keras' provided networks are trained with ImageNet
 
@@ -40,12 +42,20 @@ class FeatureDescriptor(object):
             
             return model.predict(input_data)
        
-    def feature_graph(self):
+    def get_descriptor_op(self):
         """
-            Simply return the feature descriptor graph as a keras model.
+            Return the model prediction op for a placeholder passed as a 
+            parameter
         """
         
-        return self.__load_architecture(self.architecture)
+        model = self.__load_architecture(self.architecture)
+        
+        return tf.contrib.layers.flatten(
+                tf.identity(
+                        model.layers[-2].output,
+                        name='pretrained_output'
+                )
+        )
 
     def __load_architecture(self, architecture_name):
         """ Loads a particular architecture from keras.applications """
@@ -58,12 +68,14 @@ class FeatureDescriptor(object):
             'pooling': self.pooling
         }
 
+        if self.input_tensor:
+            model_args['input_tensor'] = self.input_tensor
+
         return {
             'vgg16': lambda: keras.applications.VGG16(**model_args),
             'vgg19': lambda: keras.applications.VGG19(**model_args),
             'resnet50': lambda: keras.applications.ResNet50(**model_args)
         }[architecture_name]()
-
 
 
 """
@@ -75,7 +87,6 @@ if __name__ == "__main__":
     d = FeatureDescriptor(np.shape(img))
 
     features = d.process_features(img)
-
     print("Feature length: " + str(np.shape(features)[1]))
     print("Features: ")
     print(features)
