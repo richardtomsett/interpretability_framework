@@ -51,7 +51,26 @@ block content
             | &nbsp; &nbsp;
             button(id='img_button', class="btn btn-primary my-2", onclick="javascript:usePredefinedImage();") &nbsp; Use selected image
             br
+            | 4. Show a batch of random images: &nbsp;
+            input(type="text", value="10", id="img_num_images")
+            | &nbsp; &nbsp;
+            button(id='img_batch_button', class="btn btn-primary my-2", onclick="javascript:showRandomImageBatch();") &nbsp; Show random image batch
             br
+            br
+
+            div(id='div_image_list', style={display: 'none'})
+                table(border=1)
+                    tbody
+                        tr(id='row_img_num')
+                            td Number
+                        tr(id='row_img_name')
+                            td(class="info") Image name
+                        tr(id='row_img_img')
+                            td Image
+                        tr(id='row_img_gt')
+                            td Ground truth
+                        tr(id='row_img_act')
+                            td Actions
 
             div(id='div_image', style={display: 'none'})
                 table(border=1)
@@ -93,3 +112,7 @@ block content
                         td Prediction
                         td Explanation text
                         td Explanation image
+                        td Boundary Image
+                        td Average Image
+                        td Three Regions
+                        td Standard Deviation Image

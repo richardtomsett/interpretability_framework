@@ -178,6 +178,11 @@ def EncodeTestImages(dataset_name,num_images=1, model_name = ""):
 def ServeTestImage(dataset_name):
 	enc_x, y, img_name = EncodeTestImages(dataset_name)
 	response_dict = {"input":enc_x[0],"ground_truth":y[0], "image_name":img_name[0]}
+	print(img_name[0])
+	new_explanation_file = open("explanation_statistics.json", "w")
+	json_explanation_stats = json.dumps({"iteration":0, "sum_of_weights":list(), "sum_of_squares":list(), "average_weights":list(), "standard_deviations":list(), "image_title":img_name[0]})
+	new_explanation_file.write(json_explanation_stats)
+	new_explanation_file.close()
 
 	return json.dumps(response_dict)
 
@@ -213,6 +218,18 @@ def ServeSpecificImages():
 
 	enc_x, y, img_name = EncodeSpecificImage(dataset_name,image_name)
 	response_dict = {"input":enc_x,"ground_truth":y, "image_name":img_name}
+	print(img_name)
+	previous_explanations_file = "explanation_statistics.json"
+	old_explanation_json = open(previous_explanations_file, 'r')
+	old_explanation_stats = json.load(old_explanation_json)
+	if old_explanation_stats["image_title"] != img_name:
+		old_explanation_json.close()
+		new_explanation_file = open("explanation_statistics.json", "w")
+		json_explanation_stats = json.dumps({"iteration":0, "sum_of_weights":list(), "sum_of_squares":list(), "average_weights":list(), "standard_deviations":list(), "image_title":img_name})
+		new_explanation_file.write(json_explanation_stats)
+		new_explanation_file.close()
+	else:
+		old_explanation_json.close()
 
 	return json.dumps(response_dict)
 

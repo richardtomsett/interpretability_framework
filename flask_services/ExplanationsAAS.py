@@ -14,6 +14,8 @@ import sys
 from skimage.segmentation import mark_boundaries
 
 import numpy as np
+import math
+import copy
 
 
 ### Setup Sys path for easy imports
@@ -67,21 +69,21 @@ app = Flask(__name__)
 
 
 def readb64(base64_string,convert_colour=True):
-    sbuf = StringIO()
-    sbuf.write(base64.b64decode(base64_string))
-    pimg = Image.open(sbuf)
-    if(convert_colour):
-    	return cv2.cvtColor(np.array(pimg), cv2.COLOR_RGB2BGR)
-    else:
-    	return np.array(pimg) 
+	sbuf = StringIO()
+	sbuf.write(base64.b64decode(base64_string))
+	pimg = Image.open(sbuf)
+	if(convert_colour):
+		return cv2.cvtColor(np.array(pimg), cv2.COLOR_RGB2BGR)
+	else:
+		return np.array(pimg)
 
 def encIMG64(image,convert_colour = False):
-    if(convert_colour):
-        image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
-    
-    retval, img_buf = cv2.imencode('.jpg', image)
-    
-    return base64.b64encode(img_buf)
+	if(convert_colour):
+		image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
+
+	retval, img_buf = cv2.imencode('.jpg', image)
+
+	return base64.b64encode(img_buf)
 
 
 
@@ -154,6 +156,14 @@ def LoadModelFromJson(model_json,dataset_json):
 
 	return model_instance
 
+###to fix: this function is pretty inefficient
+def listOrganizer(organized_list, to_be_organized_list):
+	improved_list = list()
+	for entry in organized_list:
+		for item in to_be_organized_list:
+			if (entry[0] == item[0]):
+				improved_list.append(item)
+	return improved_list
 
 
 def ImagePreProcess(image):
@@ -187,7 +197,59 @@ def GetAttributionMap():
 
 	return json_data
 
-	
+def getThreeGreatestRegion(average_list):
+	region1 = (0, 0)
+	region2 = (0, 0)
+	region3 = (0, 0)
+	for i in range(len(average_list)):
+		if abs(average_list[i][1]) > abs(region1[1]):
+			region3 = region2
+			region2 = region1
+			region1 = average_list[i]
+		elif abs(average_list[i][1]) > abs(region2[1]):
+			region3 = region2
+			region2 = average_list[i]
+		elif abs(average_list[i][1]) > abs(region3[1]):
+			region3 = average_list[i]
+	return region1, region2, region3
+
+def getAverageSDand3RegionPicture(average_list, sd_list, region_list, picture_to_be_edited, weight_threshold, sd_threshold):
+	three_region_picture = copy.deepcopy(picture_to_be_edited)
+	average_picture = copy.deepcopy(picture_to_be_edited)
+	sd_picture = copy.deepcopy(picture_to_be_edited)
+	first_reg, second_reg, third_reg = getThreeGreatestRegion(average_list)
+	print(first_reg)
+	print(second_reg)
+	print(third_reg)
+	for i in range(128):
+		for j in range(128):
+			for k in range(len(average_list)):
+				#print(weight_pair[0])
+				#print(i)
+				#print(j)
+				#print(region_list[i][j])
+				if average_list[k][0] == region_list[i][j]:
+					if abs(average_list[k][1]) >= weight_threshold:
+						if average_list[k][1] < 0:
+							new_red_value = average_picture[i][j][0] + 1
+							average_picture[i][j][0] = new_red_value
+						else:
+							new_green_value = average_picture[i][j][1] + 1
+							average_picture[i][j][1] = new_green_value
+					if sd_list[k][1] > sd_threshold:
+						new_blue_value = sd_picture[i][j][2] + 1
+						sd_picture[i][j][2] = new_blue_value
+					region_boolean = average_list[k][0] == first_reg[0] or average_list[k][0] == second_reg[0] or average_list[k][0] == third_reg[0]
+					#print(average_list[k][0])
+					#print(region_boolean)
+					if abs(average_list[k][1]) >= weight_threshold  and region_boolean:
+						if average_list[k][1] < 0:
+							new_red_value = three_region_picture[i][j][0] + 1
+							three_region_picture[i][j][0] = new_red_value
+						else:
+							new_green_value = three_region_picture[i][j][1] + 1
+							three_region_picture[i][j][1] = new_green_value
+	return average_picture, sd_picture, three_region_picture
 
 @app.route("/explanations/explain", methods=['POST'])
 def Explain():
@@ -240,8 +302,67 @@ def Explain():
 		cv2.waitKey(0)
 		cv2.destroyAllWindows()
 
-	explanation_image, explanation_text, prediction, additional_outputs = explanation_instance.Explain(input_image,additional_args=additional_args)
+	#explanation_image, explanation_text, prediction, additional_outputs = explanation_instance.Explain(input_image,additional_args=additional_args)
 	
+	explanation_image, explanation_text, prediction, additional_outputs, regions = explanation_instance.Explain(input_image,additional_args=additional_args)
+	#print("explanation image:", explanation_image)
+	boundary_image = mark_boundaries(explanation_image, regions, (0, 0, 0))
+	#print("boundary_image:", boundary_image)
+	for region in regions:
+		print(region)
+	#print("mask:", additional_outputs["mask"])
+	#print("mask length:", len(additional_outputs["mask"]))
+	#print("mask segment:", additional_outputs["mask"][0])
+	#print("mask segment length:", len(additional_outputs["mask"][0]))
+	previous_explanations_file = "explanation_statistics.json"
+	old_explanation_json = open(previous_explanations_file, 'r')
+	old_explanation_stats = json.load(old_explanation_json)
+	iteration = old_explanation_stats['iteration']
+	sum_of_weights = old_explanation_stats['sum_of_weights']
+	average_weights = old_explanation_stats['average_weights']
+	sum_of_squares = old_explanation_stats['sum_of_squares']
+	standard_deviations = old_explanation_stats['standard_deviations']
+	img_name = old_explanation_stats['image_title']
+	if iteration == 0:
+		iteration += 1
+		average_weights = additional_outputs["attribution_slice_weights"]
+		sum_of_weights = additional_outputs["attribution_slice_weights"]
+		new_sum_of_squares_list = list()
+		new_standard_deviation_list = list()
+		for weight_pair in additional_outputs["attribution_slice_weights"]:
+			new_sum_of_squares = weight_pair[1]**2
+			new_sum_of_squares_list.append((weight_pair[0], new_sum_of_squares))
+			new_standard_deviation_list.append((weight_pair[0], 0))
+		standard_deviations = new_standard_deviation_list
+		sum_of_squares = new_sum_of_squares_list
+	else:
+		new_sum_list = list()
+		new_sum_of_squares_list = list()
+		iteration += 1
+		new_average_list = list()
+		new_standard_deviation_list = list()
+		attribution_slice_weights_index = 0
+		slice_weights_for_instance = listOrganizer(sum_of_weights, additional_outputs["attribution_slice_weights"])
+		for weight_pair in sum_of_weights:
+			new_sum = weight_pair[1] + slice_weights_for_instance[attribution_slice_weights_index][1]
+			new_sum_list.append((weight_pair[0], new_sum))
+			new_sum_of_squares = sum_of_squares[attribution_slice_weights_index][1] + slice_weights_for_instance[attribution_slice_weights_index][1]**2
+			new_sum_of_squares_list.append((weight_pair[0], new_sum_of_squares))
+			new_average = new_sum/iteration
+			new_average_list.append((weight_pair[0], new_average))
+			#print(new_sum_of_squares)
+			#print(((new_sum**2)/iteration))
+			#print((new_sum_of_squares-((new_sum**2)/iteration)))
+			#print((1/(iteration-1))*(new_sum_of_squares-((new_sum**2)/iteration)))
+			#print(((new_sum_of_squares-((new_sum**2)/iteration)))/(iteration-1))
+			new_standard_deviation = math.sqrt(abs((((new_sum_of_squares-((new_sum**2)/iteration)))/(iteration-1))))
+			new_standard_deviation_list.append((weight_pair[0], new_standard_deviation))
+			attribution_slice_weights_index += 1
+		sum_of_weights = new_sum_list
+		average_weights = new_average_list
+		standard_deviations = new_standard_deviation_list
+		sum_of_squares = new_sum_of_squares_list
+	old_explanation_json.close()
 
 	##### testing attribution maps
 	# if("attribution_slices" in additional_outputs.keys() and "attribution_slice_weights" in additional_outputs.keys() ):
@@ -250,13 +371,30 @@ def Explain():
 	# print(attribution_map)
 	# print("")
 
+	avg_pic, sd_pic, three_reg_pic = getAverageSDand3RegionPicture(average_weights, standard_deviations, regions, input_image, additional_args["min_weight"], 0.1)
+	#print("average pic:", avg_pic)
+
 	#TODO check if this is needed
 	if(explanation_image.max() <=1):
 		explanation_image_255 = explanation_image*255
+		avg_pic_255 = avg_pic*255
+		sd_pic_255 = sd_pic*255
+		three_reg_pic_255 = three_reg_pic*255
+		boundary_image_255 = boundary_image*255
+		boundary_image_255 = boundary_image_255.astype(np.float32)
 	else:
 		explanation_image_255 = explanation_image
 
 	encoded_explanation_image = encIMG64(explanation_image_255,False)
+	encoded_avg_pic = encIMG64(avg_pic_255,True)
+	encoded_boundary_image = encIMG64(boundary_image_255,True)
+	encoded_sd_pic = encIMG64(sd_pic_255, True)
+	encoded_three_reg_pic = encIMG64(three_reg_pic_255, True)
+	#print("explanation_image_255:", explanation_image_255)
+	#print("avg_pic_255:", avg_pic_255)
+	#print("boundary_image_255:", boundary_image_255)
+	#print("encoded_explanation_image:", encoded_explanation_image)
+	#print("encoded_avg_pic:", encoded_avg_pic)
 
 	### test images by displaying pre and post encoding
 	display_encoded_image = False
@@ -274,7 +412,13 @@ def Explain():
 
 	print("prediction:"+str(labels[int(prediction)]))#+" - "+labels[prediction)
 	# json_data = json.dumps({'prediction': labels[prediction[0]],"explanation_text":explanation_text,"explanation_image":encoded_explanation_image})
-	json_data = json.dumps({'prediction': labels[int(prediction)],"explanation_text":explanation_text,"explanation_image":encoded_explanation_image, "additional_outputs":additional_outputs})
+	# json_data = json.dumps({'prediction': labels[int(prediction)],"explanation_text":explanation_text,"explanation_image":encoded_explanation_image, "additional_outputs":additional_outputs})
+
+	json_data = json.dumps({'prediction': labels[int(prediction)],"explanation_text":explanation_text,"explanation_image":encoded_explanation_image, "average_picture":encoded_avg_pic, "boundary_image":encoded_boundary_image, "standard_deviation_picture":encoded_sd_pic, "three_region_picture":encoded_three_reg_pic, "additional_outputs":additional_outputs, "iteration": iteration, "sum_of_weights": sum_of_weights, "sum_of_squares": sum_of_squares, "average_weights": average_weights, "standard_deviations":standard_deviations})
+	new_explanation_file = open("explanation_statistics.json", "w")
+	json_explanations_stats = json.dumps({"iteration":iteration, "sum_of_weights":sum_of_weights, "sum_of_squares":sum_of_squares, "average_weights":average_weights, "standard_deviations":standard_deviations, "image_title":img_name})
+	new_explanation_file.write(json_explanations_stats)
+	new_explanation_file.close()
 
 	return json_data
 

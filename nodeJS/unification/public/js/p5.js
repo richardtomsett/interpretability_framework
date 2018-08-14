@@ -80,8 +80,6 @@ function populateStaticImages(url) {
         if (xmlHttp.readyState == 4) {
             if (xmlHttp.status == 200) {
                 let jsDs = JSON.parse(xmlHttp.responseText);
-
-                console.log(jsDs);
                 let eIin = document.getElementById("img_input_name");
                 let eIl = document.getElementById("img_list");
                 clearAllOptions(eIl);
@@ -122,6 +120,18 @@ function useRandomImage() {
     let url = "/dataset-test-image?dataset=" + getSelectedDatasetName();
 
     requestImage(url);
+}
+
+function showRandomImageBatch() {
+    let url = "";
+    let e = document.getElementById("img_num_images");
+    let num_images = e.value;
+
+    url += "/dataset-test-images";
+    url += "?dataset=" + getSelectedDatasetName();
+    url += "&num_images=" + num_images;
+
+    requestImageBatch(url);
 }
 
 function usePredefinedImage(imageName) {
@@ -200,6 +210,51 @@ function requestImage(url) {
     xmlHttp.send(null);
 }
 
+function requestImageBatch(url) {
+    let xmlHttp = new XMLHttpRequest();
+
+    xmlHttp.onreadystatechange = function() {
+        if (xmlHttp.readyState == 4) {
+            if (xmlHttp.status == 200) {
+                let jsImgList = JSON.parse(xmlHttp.responseText);
+                let numImages = jsImgList.length;
+                console.log(jsImgList);
+
+                let eIl = document.getElementById("div_image_list");
+                let eR01 = document.getElementById("row_img_num");
+                let eR02 = document.getElementById("row_img_name");
+                let eR03 = document.getElementById("row_img_img");
+                let eR04 = document.getElementById("row_img_gt");
+                let eR05 = document.getElementById("row_img_act");
+
+                for (let i in jsImgList) {
+                    let thisImg = jsImgList[i];
+                    let cell01 = eR01.insertCell(-1);
+                    let cell02 = eR02.insertCell(-1);
+                    let cell03 = eR03.insertCell(-1);
+                    let cell04 = eR04.insertCell(-1);
+                    let cell05 = eR05.insertCell(-1);
+
+                    let htmlPredict = "<button id='pred_button', class=\"btn btn-primary my-2\", onclick=\"javascript:predictFor('" + thisImg.image_name + "');\">Predict</button>";
+
+                    cell01.innerHTML = (parseInt(i) + 1) + " of " + numImages;
+                    cell02.innerHTML = thisImg.image_name;
+                    cell03.innerHTML = "<img alt='" + thisImg.image_name + "' src='data:img/jpg;base64," + thisImg.input + "'/>";
+                    cell04.innerHTML = thisImg.ground_truth;
+                    cell05.innerHTML = htmlPredict;
+                }
+
+                eIl.style.display = "block";
+            } else {
+                alert("The image batch failed to be retrieved - see server logs for details");
+            }
+        }
+    }
+
+    xmlHttp.open("GET", url, true);
+    xmlHttp.send(null);
+}
+
 function explain() {
     let xmlHttp = new XMLHttpRequest();
     let tgtMsg = document.getElementById("in_progress");
@@ -230,6 +285,10 @@ function explain() {
                 let cell4 = row.insertCell(3);
                 let cell5 = row.insertCell(4);
                 let cell6 = row.insertCell(5);
+                let cell7 = row.insertCell(6);
+                let cell8 = row.insertCell(7);
+                let cell9 = row.insertCell(8);
+                let cell10 = row.insertCell(9);
 
                 cell1.innerHTML = "";
                 cell1.innerHTML += "Dataset=" + getSelectedDatasetName() + "<br/>";
@@ -241,6 +300,10 @@ function explain() {
                 cell4.innerHTML = jsExp.prediction;
                 cell5.innerHTML = jsExp.explanation_text;
                 cell6.innerHTML = "<img alt='Explanation image' src='data:img/jpg;base64," + jsExp.explanation_image + "'>";
+                cell7.innerHTML = "<img alt='Boundary image' src='data:img/jpg;base64," + jsExp.boundary_image + "'>";
+                cell8.innerHTML = "<img alt='Average Explanation image' src='data:img/jpg;base64," + jsExp.average_picture + "'>";
+                cell9.innerHTML = "<img alt='Three Region image' src='data:img/jpg;base64," + jsExp.three_region_picture + "'>";
+                cell10.innerHTML = "<img alt='Standard Deviation image' src='data:img/jpg;base64," + jsExp.standard_deviation_picture + "'>";
 
                 tgtMsg.style.display = "none";
                 tgtBut.style.display = "block";
@@ -266,6 +329,35 @@ function predict() {
     url += "&dataset=" + getSelectedDatasetName();
     url += "&model=" + getSelectedModelName();
     url += "&image=" + getSelectedImageName() ;
+
+    tgtMsg.innerHTML = "Prediction in progress...";
+
+    xmlHttp.onreadystatechange = function() {
+        if (xmlHttp.readyState == 4) {
+            if (xmlHttp.status == 200) {
+                let jsPred = JSON.parse(xmlHttp.responseText);
+
+                tgtMsg.innerHTML = jsPred.prediction;
+            } else {
+                alert("The predict request failed - see server logs for details");
+                tgtMsg.innerHTML = "Prediction failed";
+            }
+        }
+    }
+
+    xmlHttp.open("GET", url, true);
+    xmlHttp.send(null);
+}
+
+function predictFor(imgName, tgtElemName) {
+    let xmlHttp = new XMLHttpRequest();
+    let tgtMsg = document.getElementById(tgtElemName);
+    let url = "";
+
+    url += "/model-predict?";
+    url += "&dataset=" + getSelectedDatasetName();
+    url += "&model=" + getSelectedModelName();
+    url += "&image=" + imgName;
 
     tgtMsg.innerHTML = "Prediction in progress...";
 
