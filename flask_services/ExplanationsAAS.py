@@ -18,6 +18,66 @@ import math
 import copy
 
 
+# dhm Drawing a "tinted" image with weights and mask overlaid
+
+# scaling weights in range 0 -100
+def scaleWeights(weights):
+#  print(weights.shape)
+    scaledweights = weights.copy()
+    weights_vals = weights[:,1]
+    print(weights_vals)
+    minw = np.amin(weights_vals)
+    maxw = np.amax(weights_vals)
+  
+    diffw = maxw - minw
+    print("Scaling:", minw, maxw, diffw)
+    if diffw==0:
+      print("ERROR: 0 difference in weights")
+      return weights
+    
+    for i in range(len(weights)):
+      scw = int(100*(weights[i,1]-minw)/diffw)
+      scaledweights[i] = np.array([weights[i,0],scw])
+
+    return scaledweights
+
+def getWeightForSeg(weights,seg):
+    for i in range(len(weights)):
+      if seg == weights[i,0]:
+        return weights[i,1]
+      
+    return -100
+
+# generates three numbers for BGR
+# B covers the neutral, G covers the positive, R covers the negative
+# note due to the different levels of weight, we need to bump up the colours differently
+
+tintMultR = 3 # 3
+tintMultB = 4 #4
+tintMultG = 3 # 3
+tintDefault=0
+tintFloorR = 50
+tintFloorB = 20
+tintFloorG = 0
+
+def tintForWtAndMask3(wt,msk):
+    if msk == 0:
+        return min(255,(wt+tintFloorB)*tintMultB),tintDefault,tintDefault #B
+    elif msk == 1:
+        return tintDefault,tintDefault,min(255,(wt+tintFloorR)*tintMultR) #R
+    elif msk == 2:
+        return tintDefault,min(255,(wt+tintFloorG)*tintMultG),tintDefault #G
+    else:
+        return 0,0,0
+
+def tintAt3(i,j,segments,scaled_weights,mask):
+    segno = segments[i,j]
+    segwt = getWeightForSeg(scaled_weights,segno)
+    msk = mask[i,j]
+    return tintForWtAndMask3(segwt,msk)
+
+# end dhm for tinted image
+
 ### Setup Sys path for easy imports
 # base_dir = "/media/harborned/ShutUpN/repos/dais/p5_afm_2018_demo"
 # base_dir = "/media/upsi/fs1/harborned/repos/p5_afm_2018_demo"
@@ -134,6 +194,9 @@ def LoadModelFromJson(model_json,dataset_json):
 	ModelModule = __import__(model_json["script_name"]) 
 	ModelClass = getattr(ModelModule, model_json["class_name"])
 	
+	# dhm
+	print("ModelClass=" + str(ModelClass))
+
 	dataset_name = dataset_json["dataset_name"]
 	input_image_height = dataset_json["image_y"]
 	input_image_width = dataset_json["image_x"]
@@ -197,6 +260,7 @@ def GetAttributionMap():
 
 	return json_data
 
+# dhm documentation: given a list in the form ((regid,average)...) then find the three regions with the three highest average values
 def getThreeGreatestRegion(average_list):
 	region1 = (0, 0)
 	region2 = (0, 0)
@@ -213,7 +277,22 @@ def getThreeGreatestRegion(average_list):
 			region3 = average_list[i]
 	return region1, region2, region3
 
-def getAverageSDand3RegionPicture(average_list, sd_list, region_list, picture_to_be_edited, weight_threshold, sd_threshold):
+# dhm documentation: given the region averagelist, the region stdlist, the list of pixels in each region, a base picture to be overlaid, 
+#      an average weight threshold (AWT) and a sd threshold (SDT)
+# 
+# create an image with the three highest average regions overlaid, an image with the average weights for the region overlaid,
+#   and an image with the std overlaid
+#
+# For the average image, if the region average is extreme (ie the abs value is > AWT) the region pixels colour will be increased by colour_1 (red if neg and green if pos)
+# For the st image, if the region std is extreme (ie the value is > SDT) the region pixels colour will be increased by colour_inc (blue)
+# For the three highest region image, if the region average is extreme (ie the abs value is > AWT) and is one of the three highest,
+#   then the region pixels colour will be increased by colour_inc (red if neg and green if pos)
+#
+# Note that these are done on a per region basis not a per pixel basis, ie all pixels in a given region will have the same value
+# Note this presupposes the images colours are [R,G,B]
+
+# dhm added the colour_inc arg - but doesnt seem to make a difference
+def getAverageSDand3RegionPicture(average_list, sd_list, region_list, picture_to_be_edited, weight_threshold, sd_threshold, colour_inc):
 	three_region_picture = copy.deepcopy(picture_to_be_edited)
 	average_picture = copy.deepcopy(picture_to_be_edited)
 	sd_picture = copy.deepcopy(picture_to_be_edited)
@@ -221,8 +300,14 @@ def getAverageSDand3RegionPicture(average_list, sd_list, region_list, picture_to
 	print(first_reg)
 	print(second_reg)
 	print(third_reg)
-	for i in range(128):
-		for j in range(128):
+	
+	# dhm any  sized image is ok
+	irange=picture_to_be_edited.shape[0]
+	jrange=picture_to_be_edited.shape[1]
+	print("Image size=" + str(irange) + "*" + str(jrange) + " colour_inc " + str(colour_inc))
+	
+	for i in range(irange):
+		for j in range(jrange):
 			for k in range(len(average_list)):
 				#print(weight_pair[0])
 				#print(i)
@@ -231,28 +316,32 @@ def getAverageSDand3RegionPicture(average_list, sd_list, region_list, picture_to
 				if average_list[k][0] == region_list[i][j]:
 					if abs(average_list[k][1]) >= weight_threshold:
 						if average_list[k][1] < 0:
-							new_red_value = average_picture[i][j][0] + 1
+							new_red_value = average_picture[i][j][0] + colour_inc # dhm was 1
 							average_picture[i][j][0] = new_red_value
 						else:
-							new_green_value = average_picture[i][j][1] + 1
+							new_green_value = average_picture[i][j][1] + colour_inc # dhm was 1
 							average_picture[i][j][1] = new_green_value
 					if sd_list[k][1] > sd_threshold:
-						new_blue_value = sd_picture[i][j][2] + 1
-						sd_picture[i][j][2] = new_blue_value
+						new_blue_value = sd_picture[i][j][0] + colour_inc # dhm was 1 # temp use 0 red channel not 2 blue channel
+						sd_picture[i][j][0] = new_blue_value # dhm ditto
 					region_boolean = average_list[k][0] == first_reg[0] or average_list[k][0] == second_reg[0] or average_list[k][0] == third_reg[0]
 					#print(average_list[k][0])
 					#print(region_boolean)
 					if abs(average_list[k][1]) >= weight_threshold  and region_boolean:
 						if average_list[k][1] < 0:
-							new_red_value = three_region_picture[i][j][0] + 1
+							new_red_value = three_region_picture[i][j][0] + colour_inc # dhm was 1
 							three_region_picture[i][j][0] = new_red_value
 						else:
-							new_green_value = three_region_picture[i][j][1] + 1
+							new_green_value = three_region_picture[i][j][1] + colour_inc # dhm was 1
 							three_region_picture[i][j][1] = new_green_value
+
 	return average_picture, sd_picture, three_region_picture
 
 @app.route("/explanations/explain", methods=['POST'])
 def Explain():
+
+	print("EXPLAIN")
+	
 	raw_json = json.loads(request.data)
 
 	dataset_json = json.loads(raw_json["selected_dataset_json"])
@@ -305,11 +394,37 @@ def Explain():
 	#explanation_image, explanation_text, prediction, additional_outputs = explanation_instance.Explain(input_image,additional_args=additional_args)
 	
 	explanation_image, explanation_text, prediction, additional_outputs, regions = explanation_instance.Explain(input_image,additional_args=additional_args)
+
+	# dhm documentation: Cadets addition to generate average pictures etc
+	# It is assumed that this code is called many times for the same image, and calculates the values of average and standard deviation
+	# for each region. 
+	# The running totals of sum of weights and sum of squared weights for each region
+	# are included in a file explanations_statistics.json in the flask_services directory in the format [(region id, relevant value)...]
+	# This code iterates over each region and adds the new weight for that region to the sum of weights and sum of squared weights
+	# then computes the current average and standard deviation for each region
+	#
+	# Then new images are created as overlays to the original input image:
+	# the average image which shows where the (abs) region average is above a threshold
+	# the standard deviation image which shows where the region std is above a threshold
+	# the regions with the three best average values
+	# See details of getAverageSDand3RegionPicture for details
+	
+	# There are some parameters that can be altered:
+	#   the min average threshold for display is in "min_weights" in additional_args above
+	#   the min std threshold for display std_thresh (below)
+	#   the col_inc for incrementing the overlay colours (below)
+	#
+	# Questions/bugs - does this actually check the image name, if not then there might be some confusion?
+	#    if there is a blank explanation_statistics.json file then an error will be produced
+	#    the explanations running totals is not automatically reset to zero unless a new image is chosen
+	
 	#print("explanation image:", explanation_image)
 	boundary_image = mark_boundaries(explanation_image, regions, (0, 0, 0))
 	#print("boundary_image:", boundary_image)
-	for region in regions:
-		print(region)
+	
+	#for region in regions:
+	#	print(region)
+		
 	#print("mask:", additional_outputs["mask"])
 	#print("mask length:", len(additional_outputs["mask"]))
 	#print("mask segment:", additional_outputs["mask"][0])
@@ -323,6 +438,14 @@ def Explain():
 	sum_of_squares = old_explanation_stats['sum_of_squares']
 	standard_deviations = old_explanation_stats['standard_deviations']
 	img_name = old_explanation_stats['image_title']
+	
+	old_explanation_json.close() # dhm better to close here rather than later
+
+	
+	# dhm
+	print("ITERATION " + str(iteration))
+	# mhd
+	
 	if iteration == 0:
 		iteration += 1
 		average_weights = additional_outputs["attribution_slice_weights"]
@@ -362,7 +485,7 @@ def Explain():
 		average_weights = new_average_list
 		standard_deviations = new_standard_deviation_list
 		sum_of_squares = new_sum_of_squares_list
-	old_explanation_json.close()
+
 
 	##### testing attribution maps
 	# if("attribution_slices" in additional_outputs.keys() and "attribution_slice_weights" in additional_outputs.keys() ):
@@ -371,11 +494,16 @@ def Explain():
 	# print(attribution_map)
 	# print("")
 
-	avg_pic, sd_pic, three_reg_pic = getAverageSDand3RegionPicture(average_weights, standard_deviations, regions, input_image, additional_args["min_weight"], 0.1)
+	# dhm added colour_inc and std threshold
+	col_inc=1 # doesnt seem to make a difference
+	std_thresh = 0.01 # was 0.1
+
+	avg_pic, sd_pic, three_reg_pic = getAverageSDand3RegionPicture(average_weights, standard_deviations, regions, input_image, additional_args["min_weight"], std_thresh, col_inc)
 	#print("average pic:", avg_pic)
 
 	#TODO check if this is needed
 	if(explanation_image.max() <=1):
+		print("SCALING") # dhm
 		explanation_image_255 = explanation_image*255
 		avg_pic_255 = avg_pic*255
 		sd_pic_255 = sd_pic*255
@@ -383,6 +511,7 @@ def Explain():
 		boundary_image_255 = boundary_image*255
 		boundary_image_255 = boundary_image_255.astype(np.float32)
 	else:
+		print("NOT SCALING")
 		explanation_image_255 = explanation_image
 
 	encoded_explanation_image = encIMG64(explanation_image_255,False)
@@ -406,7 +535,37 @@ def Explain():
 		cv2.waitKey(0)
 		cv2.destroyAllWindows()
 
+	# dhm to show tinted image
 	
+	# We will show each pixel as the segment weight, by scaled by the mask, so that:
+	#   value for 2 is in range 600-900, value for 1 is in range 300-599, and value for 0 is in range 0-299
+	# We assume the weight is scaled 0-100
+	# We need the mask and the weights from additional_outputs, and the regions returned by the explainer
+
+	weights = np.array(additional_outputs["attribution_slice_weights"])
+	mask = np.array(additional_outputs["mask"])
+	scaled_weights = scaleWeights(weights)
+
+	# convert to CV_8UC3 ( 3 channel unsigned 8 integer)
+	tinted_image = np.zeros((regions.shape[0],regions.shape[1],3), np.uint8)
+
+	for i in range(tinted_image.shape[0]):
+		for j in range(tinted_image.shape[1]):
+			tintb,tintg,tintr = tintAt3(i,j,regions,scaled_weights,mask)
+			tinted_image[i,j] = [tintb,tintg,tintr]
+
+	encoded_tinted_image = encIMG64(tinted_image, True)
+	
+	# optional print of the tinted image
+	display_tinted_image = False
+
+	if (display_tinted_image):
+		cv2.imshow("tinted",tinted_image)
+		cv2.waitKey(0)
+		cv2.destroyAllWindows()
+		
+	# end dhm tinted image code
+
 	labels = [label["label"] for label in dataset_json["labels"]]
 	labels.sort()
 
@@ -414,9 +573,34 @@ def Explain():
 	# json_data = json.dumps({'prediction': labels[prediction[0]],"explanation_text":explanation_text,"explanation_image":encoded_explanation_image})
 	# json_data = json.dumps({'prediction': labels[int(prediction)],"explanation_text":explanation_text,"explanation_image":encoded_explanation_image, "additional_outputs":additional_outputs})
 
-	json_data = json.dumps({'prediction': labels[int(prediction)],"explanation_text":explanation_text,"explanation_image":encoded_explanation_image, "average_picture":encoded_avg_pic, "boundary_image":encoded_boundary_image, "standard_deviation_picture":encoded_sd_pic, "three_region_picture":encoded_three_reg_pic, "additional_outputs":additional_outputs, "iteration": iteration, "sum_of_weights": sum_of_weights, "sum_of_squares": sum_of_squares, "average_weights": average_weights, "standard_deviations":standard_deviations})
+	# dhm adding the tinted image to the return json
+	json_data = json.dumps({
+		'prediction': labels[int(prediction)],
+		"explanation_text":explanation_text,
+		"explanation_image":encoded_explanation_image,
+		"average_picture":encoded_avg_pic, 
+		"boundary_image":encoded_boundary_image, 
+		"standard_deviation_picture":encoded_sd_pic, 
+		"three_region_picture":encoded_three_reg_pic, 
+		"additional_outputs":additional_outputs, 
+		"iteration": iteration, 
+		"sum_of_weights": sum_of_weights,
+		"sum_of_squares": sum_of_squares, 
+		"average_weights": average_weights, 
+		"standard_deviations":standard_deviations,
+		"tinted_image":encoded_tinted_image # dhm
+		})
+
+	json_explanations_stats = json.dumps({
+		"iteration":iteration, 
+		"sum_of_weights":sum_of_weights, 
+		"sum_of_squares":sum_of_squares, 
+		"average_weights":average_weights, 
+		"standard_deviations":standard_deviations, 
+		"image_title":img_name
+		})
+		
 	new_explanation_file = open("explanation_statistics.json", "w")
-	json_explanations_stats = json.dumps({"iteration":iteration, "sum_of_weights":sum_of_weights, "sum_of_squares":sum_of_squares, "average_weights":average_weights, "standard_deviations":standard_deviations, "image_title":img_name})
 	new_explanation_file.write(json_explanations_stats)
 	new_explanation_file.close()
 
@@ -433,11 +617,10 @@ if __name__ == "__main__":
 	explanations_json = None
 	with open(explanations_json_path,"r") as f:
 		explanations_json = json.load(f)
-	
+
 
 	loaded_models = {}
 	loaded_explanations = {}
 
 	print('Starting the API')
 	app.run(host='0.0.0.0',port=6201)
-

@@ -289,6 +289,7 @@ function explain() {
                 let cell8 = row.insertCell(7);
                 let cell9 = row.insertCell(8);
                 let cell10 = row.insertCell(9);
+                let cell11 = row.insertCell(10); // dhm
 
                 cell1.innerHTML = "";
                 cell1.innerHTML += "Dataset=" + getSelectedDatasetName() + "<br/>";
@@ -304,6 +305,7 @@ function explain() {
                 cell8.innerHTML = "<img alt='Average Explanation image' src='data:img/jpg;base64," + jsExp.average_picture + "'>";
                 cell9.innerHTML = "<img alt='Three Region image' src='data:img/jpg;base64," + jsExp.three_region_picture + "'>";
                 cell10.innerHTML = "<img alt='Standard Deviation image' src='data:img/jpg;base64," + jsExp.standard_deviation_picture + "'>";
+                cell11.innerHTML = "<img alt='Tinted image' src='data:img/jpg;base64," + jsExp.tinted_image + "'>"; // dhm
 
                 tgtMsg.style.display = "none";
                 tgtBut.style.display = "block";
