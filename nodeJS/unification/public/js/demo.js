@@ -21,6 +21,9 @@ function demo_explain (thisElement){
         console.log(i);
         let xmlHttp = new XMLHttpRequest();
 
+        let loadingDiv = document.getElementById("result" + i);
+        loadingDiv.innerHTML = "<img alt='Explanation image' src='../img/loading.gif'>";
+
         xmlHttp.onreadystatechange = function() {
             if (xmlHttp.readyState == 4) {
                 if (xmlHttp.status == 200) {
@@ -28,7 +31,6 @@ function demo_explain (thisElement){
                     console.log(jsExp);
 
                     var resultDiv = "result" + counter;
-                    console.log(resultDiv);
     
                     let matrixDiv = document.getElementById(resultDiv);
     
