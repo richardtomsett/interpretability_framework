@@ -1,9 +1,11 @@
 function demo_explain (thisElement){
     console.log(thisElement.alt);
 
+    // Counter for the explain() loop - maximum 8
+    var counter = 0;
+
     let imgName = thisElement.alt;
     console.log(imgName);
-    let xmlHttp = new XMLHttpRequest();
     let url = "";
 
     url += "/explanation-explain?";
@@ -14,23 +16,31 @@ function demo_explain (thisElement){
 
     console.log(url);
 
-    xmlHttp.onreadystatechange = function() {
-        if (xmlHttp.readyState == 4) {
-            console.log("hihihi");
-            if (xmlHttp.status == 200) {
-                console.log("hihihi");
-                let jsExp = JSON.parse(xmlHttp.responseText);
-                console.log(jsExp);
+    // Call explain API 9 times for selected image
+    for (i=0; i < 9; i++) {
+        console.log(i);
+        let xmlHttp = new XMLHttpRequest();
 
-                let matrix1 = document.getElementById("result1");
+        xmlHttp.onreadystatechange = function() {
+            if (xmlHttp.readyState == 4) {
+                if (xmlHttp.status == 200) {
+                    let jsExp = JSON.parse(xmlHttp.responseText);
+                    console.log(jsExp);
 
-                matrix1.innerHTML = "<img alt='Explanation image' src='data:img/jpg;base64," + jsExp.explanation_image + "'>";
-            } else {
-                alert("The explanation failed - see server logs for details");
+                    var resultDiv = "result" + counter;
+                    console.log(resultDiv);
+    
+                    let matrixDiv = document.getElementById(resultDiv);
+    
+                    matrixDiv.innerHTML = "<img alt='Explanation image' src='data:img/jpg;base64," + jsExp.explanation_image + "'>";
+                    counter = counter +1;
+                } else {
+                    alert("The explanation failed - see server logs for details");
+                }
             }
         }
+    
+        xmlHttp.open("GET", url, true);
+        xmlHttp.send(null);
     }
-
-    xmlHttp.open("GET", url, true);
-    xmlHttp.send(null);
 }
