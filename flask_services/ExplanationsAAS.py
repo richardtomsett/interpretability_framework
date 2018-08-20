@@ -49,8 +49,9 @@ def getWeightForSeg(weights,seg):
     return -100
 
 # generates three numbers for BGR
-# B covers the neutral, G covers the positive, R covers the negative
+# B covers the neutral (mask=0), G covers the positive (mask=2), R covers the negative(mask = 1)
 # note due to the different levels of weight, we need to bump up the colours differently
+# assume that the image is encoded as RGB
 
 tintMultR = 3 # 3
 tintMultB = 4 #4
@@ -62,9 +63,9 @@ tintFloorG = 0
 
 def tintForWtAndMask3(wt,msk):
     if msk == 0:
-        return min(255,(wt+tintFloorB)*tintMultB),tintDefault,tintDefault #B
+        return tintDefault,tintDefault,min(255,(wt+tintFloorR)*tintMultR) #B
     elif msk == 1:
-        return tintDefault,tintDefault,min(255,(wt+tintFloorR)*tintMultR) #R
+        return min(255,(wt+tintFloorB)*tintMultB),tintDefault,tintDefault #R
     elif msk == 2:
         return tintDefault,min(255,(wt+tintFloorG)*tintMultG),tintDefault #G
     else:
@@ -291,11 +292,34 @@ def getThreeGreatestRegion(average_list):
 # Note that these are done on a per region basis not a per pixel basis, ie all pixels in a given region will have the same value
 # Note this presupposes the images colours are [R,G,B]
 
+# dhm make a greyscale image
+def makeGreyScale(picture):
+	greyscale = copy.deepcopy(picture)
+
+	for i in range(picture.shape[0]):
+		for j in range(picture.shape[1]):
+			g = (picture[i][j][0] + picture[i][j][1] + picture[i][j][2])/3
+			greyscale[i][j][0]= g
+			greyscale[i][j][1]= g
+			greyscale[i][j][2]= g
+			
+	return greyscale
+
+
 # dhm added the colour_inc arg - but doesnt seem to make a difference
-def getAverageSDand3RegionPicture(average_list, sd_list, region_list, picture_to_be_edited, weight_threshold, sd_threshold, colour_inc):
+# dhm we colour as follows:
+#   average: first grayscale the image and then add light red to high negative average values, and light green to high positive average values
+#   std: first grayscale the image and then add light yellow to values above 1st threshold and light orange to values above 2nd threshold
+#  NB increasing the colour_inc (between 0 and 1) will intensify the colours
+def getAverageSDand3RegionPicture(average_list, sd_list, region_list, picture_to_be_edited, weight_threshold, sd_threshold, sd_threshold1, colour_inc):
 	three_region_picture = copy.deepcopy(picture_to_be_edited)
 	average_picture = copy.deepcopy(picture_to_be_edited)
 	sd_picture = copy.deepcopy(picture_to_be_edited)
+	
+	average_picture=makeGreyScale(average_picture) # dhm
+	sd_picture=makeGreyScale(sd_picture) # dhm
+	three_region_picture=makeGreyScale(three_region_picture) # dhm
+
 	first_reg, second_reg, third_reg = getThreeGreatestRegion(average_list)
 	print(first_reg)
 	print(second_reg)
@@ -321,9 +345,16 @@ def getAverageSDand3RegionPicture(average_list, sd_list, region_list, picture_to
 						else:
 							new_green_value = average_picture[i][j][1] + colour_inc # dhm was 1
 							average_picture[i][j][1] = new_green_value
-					if sd_list[k][1] > sd_threshold:
-						new_blue_value = sd_picture[i][j][0] + colour_inc # dhm was 1 # temp use 0 red channel not 2 blue channel
-						sd_picture[i][j][0] = new_blue_value # dhm ditto
+					if sd_list[k][1] > sd_threshold1:
+						new_red_value = sd_picture[i][j][0] + colour_inc*3 # dhm was blue 
+						sd_picture[i][j][0] = new_red_value # dhm ditto
+						new_green_value = sd_picture[i][j][1] + colour_inc*2 # dhm added to create orange (with relative multipliers of the colour_inc)
+						sd_picture[i][j][1] = new_green_value # dhm ditto
+					elif sd_list[k][1] > sd_threshold:
+						new_red_value = sd_picture[i][j][0] + colour_inc # dhm was blue
+						sd_picture[i][j][0] = new_red_value # dhm ditto
+						new_green_value = sd_picture[i][j][1] + colour_inc # dhm added to create yellow (with equal colour_inc)
+						sd_picture[i][j][1] = new_green_value # dhm ditto
 					region_boolean = average_list[k][0] == first_reg[0] or average_list[k][0] == second_reg[0] or average_list[k][0] == third_reg[0]
 					#print(average_list[k][0])
 					#print(region_boolean)
@@ -495,10 +526,13 @@ def Explain():
 	# print("")
 
 	# dhm added colour_inc and std threshold
-	col_inc=1 # doesnt seem to make a difference
-	std_thresh = 0.01 # was 0.1
+	col_inc=0.4 # needs to be 0 to 1, I think
+	std_thresh = 0.05 # was 0.1
+	std_thresh1 = 0.07 # new
+	av_th=0.1 # was additional_args["min_weight"], ie 0.01
 
-	avg_pic, sd_pic, three_reg_pic = getAverageSDand3RegionPicture(average_weights, standard_deviations, regions, input_image, additional_args["min_weight"], std_thresh, col_inc)
+	# dhm avg_pic, sd_pic, three_reg_pic = getAverageSDand3RegionPicture(average_weights, standard_deviations, regions, input_image, additional_args["min_weight"], 0.1)
+	avg_pic, sd_pic, three_reg_pic = getAverageSDand3RegionPicture(average_weights, standard_deviations, regions, input_image, av_th, std_thresh, std_thresh1, col_inc)
 	#print("average pic:", avg_pic)
 
 	#TODO check if this is needed
