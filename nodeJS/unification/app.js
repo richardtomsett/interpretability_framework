@@ -27,6 +27,7 @@ var xaRouter = require('./routes/explanations-all');
 var xdRouter = require('./routes/explanation-details');
 var xffRouter = require('./routes/explanations-for-filter');
 var xxRouter = require('./routes/explanation-explain');
+var demoRouter = require('./routes/demo');
 
 var app = express();
 
@@ -60,6 +61,7 @@ app.use('/explanations-all', xaRouter);
 app.use('/explanation-details', xdRouter);
 app.use('/explanations-for-filter', xffRouter);
 app.use('/explanation-explain', xxRouter);
+app.use('/demo', demoRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -11,6 +11,9 @@ html
     link(rel='stylesheet', href='https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css', integrity='sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B', crossorigin='anonymous')
     script(src="/js/p5.js")
     script(src="/js/api-tester.js")
+    script(src="/js/demo.js")
+    style
+      include ../public/css/style.css
   body()
     div(class="text-white bg-dark")
       div(class="container-fluid")
@@ -23,4 +26,6 @@ html
             a(href='/api-tester', class='text-white') Unified API tester
           div(class="col-sm")
             a(href='/combos', class='text-white') Show combos
+          div(class="col-sm")
+            a(href='/demo', class='text-white') Demo
     block content
