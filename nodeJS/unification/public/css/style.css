@@ -12,7 +12,7 @@
 .matrixImg {
     padding: 0;
     border:1px solid white;
-    width:1005;
+    width:100%;
 }
 
 .matrixImg img{
@@ -32,3 +32,19 @@
     transform: scale(1.1);
     z-index:10;
 } */
+
+.resultContainer {
+    text-align: center;
+    padding-top:5%;
+}
+
+.resultImg {
+    border: 1px solid white;
+    height:206px;
+    width:206px;
+    margin:0 auto;
+}
+
+.resultImg img {
+    width:100%;
+}
