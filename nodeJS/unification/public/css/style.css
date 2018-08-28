@@ -5,8 +5,14 @@
           box-sizing: border-box;
 }
 
+.demo-container {
+    width:90%;
+    margin:0 auto;
+    margin-top:10vh;;
+}
+
 .matrixContainer {
-    padding:0 5%;
+    padding:0 3%;
 }
 
 .matrixImg {
@@ -40,11 +46,12 @@
 
 .resultImg {
     border: 1px solid white;
-    height:206px;
-    width:206px;
+    height:250px;
+    width:250px;
     margin:0 auto;
 }
 
 .resultImg img {
     width:100%;
+    margin:5px 0;
 }

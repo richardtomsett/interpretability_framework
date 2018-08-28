@@ -21,11 +21,12 @@ function demo_explain (thisElement){
 
         // Set loading gif to boxes
         let loadingDiv = document.getElementById("result" + i);
+        let tintloadingDiv = document.getElementById("tint_result" + i);
+        tintloadingDiv.innerHTML = "<img alt='Explanation image' src='../img/loading.gif'>";
         loadingDiv.innerHTML = "<img alt='Explanation image' src='../img/loading.gif'>";
-        document.getElementById("result_average").innerHTML = "<img alt='Explanation image' src='../img/loading.gif'>";
-        document.getElementById("result_significant").innerHTML = "<img alt='Explanation image' src='../img/loading.gif'>";
-        document.getElementById("result_tinted").innerHTML = "<img alt='Explanation image' src='../img/loading.gif'>";
-        document.getElementById("result_sd").innerHTML = "<img alt='Explanation image' src='../img/loading.gif'>";
+        document.getElementById("result_average").innerHTML = "<img id='loading1' alt='Explanation image' class='loadinggif' src='../img/loading.gif'>";
+        document.getElementById("result_significant").innerHTML = "<img id='loading2' alt='Explanation image'class='loadinggif' src='../img/loading.gif'>";
+        document.getElementById("result_sd").innerHTML = "<img id='loading3' alt='Explanation image' class='loadinggif' src='../img/loading.gif'>";
 
 
         xmlHttp.onreadystatechange = function() {
@@ -35,18 +36,38 @@ function demo_explain (thisElement){
                     console.log(jsExp);
 
                     var resultDiv = "result" + counter;
+                    var tintresultDiv = "tint_result" + counter;
                     let matrixDiv = document.getElementById(resultDiv);
+                    let tintmatrixDiv = document.getElementById(tintresultDiv);
     
-                    matrixDiv.innerHTML = "<img alt='Explanation image' src='data:img/jpg;base64," + jsExp.explanation_image + "'>";
-                    counter = counter +1;
+                    // Add Explanation image and tinted images to result matrix
+                    matrixDiv.innerHTML = "<img alt='Explanation image' src='data:img/jpg;base64," + jsExp.explanation_image +"'>";
+                    tintmatrixDiv.innerHTML = "<img alt='Tinted Explanation image' src='data:img/jpg;base64," + jsExp.tinted_image + "'>";
 
-                    // For each iteration, display the compounded averaged images
-                    // if (counter == 9) {
-                        document.getElementById("result_average").innerHTML = "<img alt='Explanation image' src='data:img/jpg;base64," + jsExp.explanation_image + "'>";
-                        document.getElementById("result_significant").innerHTML = "<img alt='Average Explanation image' src='data:img/jpg;base64," + jsExp.average_picture + "'>";
-                        document.getElementById("result_tinted").innerHTML = "<img alt='Tinted image' src='data:img/jpg;base64," + jsExp.tinted_image + "'>";
-                        document.getElementById("result_sd").innerHTML = "<img alt='Standard Deviation image' src='data:img/jpg;base64," + jsExp.standard_deviation_picture + "'>";
-                    // }
+                    // Single Average images - instantiate parent divs
+                    var parent_average = document.getElementById("result_average");
+                    var parent_significant = document.getElementById("result_significant");
+                    var parent_sd = document.getElementById("result_sd");
+
+                    // Instantiate child image elements
+                    var img_average = document.createElement("IMG");
+                    img_average.src = "data:img/jpg;base64," + jsExp.average_picture;
+                    var img_significant = document.createElement("IMG");
+                    img_significant.src = "data:img/jpg;base64," + jsExp.three_region_picture;
+                    var img_sd = document.createElement("IMG");
+                    img_sd.src = "data:img/jpg;base64," + jsExp.standard_deviation_picture;
+
+                    // Add child images to div
+                    parent_average.insertBefore(img_average, parent_average.childNodes[0]);
+                    parent_significant.insertBefore(img_significant, parent_significant.childNodes[0]);
+                    parent_sd.insertBefore(img_sd, parent_sd.childNodes[0]);
+
+                    // Remove loading gifs
+                    document.getElementById("loading1").style.display = "none";
+                    document.getElementById("loading2").style.display = "none";
+                    document.getElementById("loading3").style.display = "none";
+
+                    counter = counter +1;
                     
                 } else {
                     alert("The explanation failed - see server logs for details");
