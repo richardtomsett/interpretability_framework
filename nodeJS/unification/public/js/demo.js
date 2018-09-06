@@ -24,9 +24,9 @@ function demo_explain (thisElement){
         let tintloadingDiv = document.getElementById("tint_result" + i);
         tintloadingDiv.innerHTML = "<img alt='Explanation image' src='../img/loading.gif'>";
         loadingDiv.innerHTML = "<img alt='Explanation image' src='../img/loading.gif'>";
-        document.getElementById("result_average").innerHTML = "<img id='loading1' alt='Explanation image' class='loadinggif' src='../img/loading.gif'>";
-        document.getElementById("result_significant").innerHTML = "<img id='loading2' alt='Explanation image'class='loadinggif' src='../img/loading.gif'>";
-        document.getElementById("result_sd").innerHTML = "<img id='loading3' alt='Explanation image' class='loadinggif' src='../img/loading.gif'>";
+        document.getElementById("final_result_average").innerHTML = "<img id='loading1' alt='Explanation image' class='loadinggif' src='../img/loading.gif'>";
+        document.getElementById("final_result_significant").innerHTML = "<img id='loading2' alt='Explanation image'class='loadinggif' src='../img/loading.gif'>";
+        document.getElementById("final_result_sd").innerHTML = "<img id='loading3' alt='Explanation image' class='loadinggif' src='../img/loading.gif'>";
 
 
         xmlHttp.onreadystatechange = function() {
@@ -57,17 +57,18 @@ function demo_explain (thisElement){
                     var img_sd = document.createElement("IMG");
                     img_sd.src = "data:img/jpg;base64," + jsExp.standard_deviation_picture;
 
-                    // Add child images to div
-                    parent_average.insertBefore(img_average, parent_average.childNodes[0]);
-                    parent_significant.insertBefore(img_significant, parent_significant.childNodes[0]);
-                    parent_sd.insertBefore(img_sd, parent_sd.childNodes[0]);
-
-                    // Remove loading gifs
-                    document.getElementById("loading1").style.display = "none";
-                    document.getElementById("loading2").style.display = "none";
-                    document.getElementById("loading3").style.display = "none";
+                    // Add child image to parent div
+                    parent_average.appendChild(img_average, parent_average.childNodes[0]);
+                    parent_significant.appendChild(img_significant, parent_significant.childNodes[0]);
+                    parent_sd.appendChild(img_sd, parent_sd.childNodes[0]);
 
                     counter = counter +1;
+
+                    if (counter == 8) {
+                        document.getElementById("final_result_average").innerHTML = "<img alt='Result image' src='data:img/jpg;base64," + jsExp.average_picture +"'>";
+                        document.getElementById("final_result_significant").innerHTML = "<img alt='Result image' src='data:img/jpg;base64," + jsExp.three_region_picture +"'>";
+                        document.getElementById("final_result_sd").innerHTML = "<img alt='Result image' src='data:img/jpg;base64," + jsExp.standard_deviation_picture +"'>";
+                    }
                     
                 } else {
                     alert("The explanation failed - see server logs for details");

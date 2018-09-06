@@ -528,7 +528,7 @@ def Explain():
 	# dhm added colour_inc and std threshold
 	col_inc=0.5 # needs to be 0 to 1, I think
 	std_thresh = 0.05 # was 0.1
-	std_thresh1 = 0.07 # new
+	std_thresh1 = 0.1 # new
 	av_th=0.03 # was additional_args["min_weight"], ie 0.01
 
 	# dhm avg_pic, sd_pic, three_reg_pic = getAverageSDand3RegionPicture(average_weights, standard_deviations, regions, input_image, additional_args["min_weight"], 0.1)

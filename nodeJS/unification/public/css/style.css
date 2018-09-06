@@ -6,18 +6,24 @@
 }
 
 .demo-container {
-    width:90%;
+    width:75%;
     margin:0 auto;
     margin-top:10vh;;
+    padding-bottom:50px;
+}
+
+.demo-header {
+    margin-bottom:2vh;
 }
 
 .matrixContainer {
-    padding:0 3%;
+    /* padding:0 3%; */
+    margin: 0 auto;
 }
 
 .matrixImg {
     padding: 0;
-    border:1px solid white;
+    border:1px solid #ececec;
     width:100%;
 }
 
@@ -45,13 +51,26 @@
 }
 
 .resultImg {
-    border: 1px solid white;
+    border: 1px solid #ececec;
     height:250px;
     width:250px;
     margin:0 auto;
 }
 
+.finalresultImg {
+    border: 4px solid #ececec;
+    height:250px;
+    width:250px;
+    margin:0 auto;
+    padding:5px;
+}
+
 .resultImg img {
+    width:100%;
+    /* margin:5px 0; */
+}
+
+.finalresultImg img {
     width:100%;
     margin:5px 0;
 }
