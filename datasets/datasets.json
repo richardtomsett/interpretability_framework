@@ -498,6 +498,34 @@
 	"license":"apache 2"
 	},
 	{
+		"dataset_name":"CIFAR-10-original",
+		"download_link":"",
+		"folder":"cifar-10-original",
+		"labels":[
+					{"label":"airplane","images":6000},
+					{"label":"automobile","images":6000},
+					{"label":"bird","images":6000},
+					{"label":"cat","images":6000},
+					{"label":"deer","images":6000},
+					{"label":"dog","images":6000},
+					{"label":"frog","images":6000},
+					{"label":"horse","images":6000},
+					{"label":"ship","images":6000},
+					{"label":"truck","images":6000}
+				],
+		"image_x":32,
+		"image_y":32,
+		"image_channels":3,
+		"mean":[0.4913997551666284, 0.48215855929893703, 0.4465309133731618],
+		"std": [0.24703225141799082, 0.24348516474564, 0.26158783926049628],
+		"ground_truth_csv_path":"cifar-10-original.csv",
+		"default_training_allocation_path":"cifar-10-original_train_split.csv",
+		"interesting_images":["00053_truck.jpg","00008_ship.jpg","03609_airplane.jpg","00020_deer.jpg","00556_frog.jpg"],
+		"references":[""],
+		"description":"Dataset commonly used for benchmarking Machine Learning techniques.",
+		"license":"apache 2"
+		},
+	{
 	"dataset_name":"MNIST",
 	"download_link":"",
 	"folder":"mnist",

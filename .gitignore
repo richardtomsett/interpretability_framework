@@ -134,3 +134,6 @@ saved_models/*
 *ROAR_*
 
 *svrt_problem*
+
+.vscode
+RESULTS
