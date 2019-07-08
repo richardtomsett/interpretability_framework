@@ -634,7 +634,7 @@ class DataSet(object):
 
     def GetMean(self):
         if(self.dataset_mean is None):
-            Xs, Ys = self.GetBatch(batch_size=-1, even_examples=True, split_batch=True, split_one_hot=True,batch_source="full", return_batch_data=False)
+            Xs, Ys = self.GetBatch(batch_size=-1, even_examples=False, split_batch=True, split_one_hot=True,batch_source="train", return_batch_data=False)
             x = np.concatenate([np.asarray(Xs[i][0]) for i in range(len(Xs))])
             self.dataset_mean = np.mean(x,axis=(0))
             print("mean: ",self.dataset_mean)
@@ -642,7 +642,7 @@ class DataSet(object):
 
     def GetSTD(self):
         if(self.dataset_std is None):
-            Xs, Ys = self.GetBatch(batch_size=-1, even_examples=True, split_batch=True, split_one_hot=True,batch_source="full", return_batch_data=False)
+            Xs, Ys = self.GetBatch(batch_size=-1, even_examples=False, split_batch=True, split_one_hot=True,batch_source="train", return_batch_data=False)
             x = np.concatenate([np.asarray(Xs[i][0]) for i in range(len(Xs))])
             self.dataset_std = np.std(x,axis=(0))
             print("std: ",self.dataset_std)

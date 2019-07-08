@@ -28,7 +28,7 @@ class VGG16Richard(object):
 
     def __init__(self, model_input_dim_height, model_input_dim_width, model_input_channels, n_classes, model_dir,
                  additional_args={}):
-        super(VGG16Trainable, self).__init__()
+        super(VGG16Richard, self).__init__()
         # model specific variables
         self.min_height = 32
         self.min_width = 32
@@ -180,12 +180,12 @@ class VGG16Richard(object):
         model.add(Conv2D(32, (3, 3), \
             kernel_regularizer=regularizers.l2(weight_decay), \
             padding='same', \
-            input_shape=self.x_shape)
+            input_shape=self.x_shape))
         model.add(Activation('relu'))
         model.add(BatchNormalization())
         model.add(Conv2D(32, (3, 3), \
             kernel_regularizer=regularizers.l2(weight_decay), \
-            padding='same')
+            padding='same'))
         model.add(Activation('relu'))
         model.add(BatchNormalization())
         model.add(MaxPooling2D(2,2))
@@ -194,7 +194,7 @@ class VGG16Richard(object):
         model.add(Conv2D(64, (3, 3), \
             kernel_regularizer=regularizers.l2(weight_decay), \
             padding='same', \
-            input_shape=self.x_shape)
+            input_shape=self.x_shape))
         model.add(Activation('relu'))
         model.add(BatchNormalization())
         model.add(Conv2D(64, (3, 3), \
