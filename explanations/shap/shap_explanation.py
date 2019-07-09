@@ -178,7 +178,7 @@ class ShapExplainer(object):
     if("num_background_samples" in additional_args):
       num_background_samples=additional_args["num_background_samples"]
     else:
-      num_background_samples=64
+      num_background_samples=512
 
     #print("num_background_samples",num_background_samples)
 
@@ -204,7 +204,11 @@ class ShapExplainer(object):
       e = self.shap_explainers_dict[additional_args["dataset_name"]][self.model.__class__.__name__]
       print("loaded previously generated shap explainer")
     else:
-      print("generating background samples")
+      print("generating background samples (this will be printed 5 times)")
+      print("generating background samples (this will be printed 5 times)")
+      print("generating background samples (this will be printed 5 times)")
+      print("generating background samples (this will be printed 5 times)")
+      print("generating background samples (this will be printed 5 times)")
       background = background_image_pool[np.random.choice(background_image_pool.shape[0], num_background_samples, replace=False)]
       
       # config = tf.ConfigProto()
