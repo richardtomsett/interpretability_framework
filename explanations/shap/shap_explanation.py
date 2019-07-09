@@ -240,17 +240,17 @@ class ShapExplainer(object):
     
     explanation = shap_values[predicted_class]
 
-    explanation_image = self.GenerateShapExplanationImage(input_image,explanation)
+    #explanation_image = self.GenerateShapExplanationImage(input_image,explanation)
 
     ## for testing:
     # shap.image_plot(shap_values, np.multiply(input_image,255.0))
-    show_explanation_image = False
+    #show_explanation_image = False
 
-    if(show_explanation_image):
-      cv2_image = cv2.cvtColor(explanation_image, cv2.COLOR_RGB2BGR)
-      cv2.imshow("explanation image",cv2_image)
-      cv2.waitKey(0)
-      cv2.destroyAllWindows()
+    #if(show_explanation_image):
+    #  cv2_image = cv2.cvtColor(explanation_image, cv2.COLOR_RGB2BGR)
+    #  cv2.imshow("explanation image",cv2_image)
+    #  cv2.waitKey(0)
+    #  cv2.destroyAllWindows()
     
     if(not isinstance(prediction_scores,list)):
       prediction_scores = prediction_scores.tolist()
@@ -264,7 +264,7 @@ class ShapExplainer(object):
 
     explanation_text = "Evidence towards predicted class shown in blue, evidence against shown in red."
     
-    return explanation_image, explanation_text, predicted_class, additional_outputs
+    return None, explanation_text, predicted_class, additional_outputs
   
 
 
