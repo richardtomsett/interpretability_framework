@@ -28,7 +28,7 @@ class InnvestigateExplainer(object):
     else:
         self.explanation_method = explanation_method
 
-    self.requires_fresh_session = False
+    self.requires_fresh_session = True
 		
   def GetColorMap(self):
     colors = []
