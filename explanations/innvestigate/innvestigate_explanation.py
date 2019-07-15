@@ -18,6 +18,8 @@ import innvestigate.utils
 from keras import backend as K
 from keras.models import Model
 
+import gc
+
 class InnvestigateExplainer(object):
   """docstring for InnvestigateExplainer"""
   def __init__(self, model, explanation_method=None):
@@ -141,6 +143,10 @@ class InnvestigateExplainer(object):
     additional_outputs = {"attribution_map":attributions_list, "innvestigate_values":[innv_value.tolist() for innv_value in innvestigate_values],"prediction_scores":prediction_scores}
 
     explanation_text = "Evidence towards predicted class shown in red."
+    del fmodel
+    del analyzer
+    del innvestigate_values
+    gc.collect()
     
     return None, explanation_text, predicted_class, additional_outputs
   
