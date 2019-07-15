@@ -20,12 +20,12 @@ from keras.backend.tensorflow_backend import set_session
 
 class ShapExplainer(object):
   """docstring for LimeExplainer"""
-  def __init__(self, model):
+  def __init__(self, model, rseed=1234):
     super(ShapExplainer, self).__init__()
     self.model = model
     self.dataset_tool_dict = {}
     self.shap_explainers_dict = {}
-
+    self.rseed = rseed
     self.requires_fresh_session = False
 
   def GetColorMap(self):
@@ -178,9 +178,9 @@ class ShapExplainer(object):
     if("num_background_samples" in additional_args):
       num_background_samples=additional_args["num_background_samples"]
     else:
-      num_background_samples=512
+      num_background_samples=500
 
-    #print("num_background_samples",num_background_samples)
+    print("num_background_samples",num_background_samples)
 
     if("background_image_pool" in additional_args):
       background_image_pool=additional_args["background_image_pool"]
@@ -209,7 +209,8 @@ class ShapExplainer(object):
       print("generating background samples (this will be printed 5 times)")
       print("generating background samples (this will be printed 5 times)")
       print("generating background samples (this will be printed 5 times)")
-      background = background_image_pool[np.random.choice(background_image_pool.shape[0], num_background_samples, replace=False)]
+      random_generator = np.random.RandomState(self.rseed)
+      background = background_image_pool[random_generator.choice(background_image_pool.shape[0], num_background_samples, replace=False)]
       
       # config = tf.ConfigProto()
       # config.gpu_options.allow_growth = True  # dynamically grow the memory used on the GPU
@@ -234,15 +235,16 @@ class ShapExplainer(object):
     except:
       print("couldn't use model image size check")
 
-    shap_values = e.shap_values(input_image)
-    
+    shap_values = e.shap_values(input_image, ranked_outputs=1)
+    shap_values = shap_values[0]
+    print(shap_values[0].shape)
     
     prediction_scores,prediction  = self.model.Predict(input_image, True)
     print(prediction)
     print(prediction_scores)
     predicted_class = np.argmax(prediction_scores)
     
-    explanation = shap_values[predicted_class]
+    #explanation = shap_values[predicted_class]
 
     #explanation_image = self.GenerateShapExplanationImage(input_image,explanation)
 
@@ -260,13 +262,11 @@ class ShapExplainer(object):
       prediction_scores = prediction_scores.tolist()
     
     attributions_list = [shap_value.tolist() for shap_value in shap_values]
-
-    attributions_list = attributions_list[predicted_class][0]
-
+    attributions_list = attributions_list[0][0]
     
     additional_outputs = {"attribution_map":attributions_list,"shap_values":[shap_value.tolist() for shap_value in shap_values],"prediction_scores":prediction_scores[0]}
 
-    explanation_text = "Evidence towards predicted class shown in blue, evidence against shown in red."
+    explanation_text = "Evidence towards predicted class shown in red, evidence against shown in blue."
     
     return None, explanation_text, predicted_class, additional_outputs
   

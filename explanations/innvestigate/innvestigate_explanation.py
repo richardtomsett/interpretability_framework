@@ -13,18 +13,20 @@ import os
 import sys
 import json
 
+import innvestigate
+import innvestigate.utils
 from keras import backend as K
 from keras.models import Model
 
-# keras-vis
-from keras import activations
-from vis.visualization import visualize_saliency
-
-class SaliencyExplainer(object):
-  """docstring for SaliencyExplainer"""
-  def __init__(self, model):
-    super(SaliencyExplainer, self).__init__()
+class InnvestigateExplainer(object):
+  """docstring for InnvestigateExplainer"""
+  def __init__(self, model, explanation_method=None):
+    super(InnvestigateExplainer, self).__init__()
     self.model = model
+    if explanation_method is None:
+        self.explanation_method = "gradient"
+    else:
+        self.explanation_method = explanation_method
 
     self.requires_fresh_session = False
 		
@@ -38,12 +40,12 @@ class SaliencyExplainer(object):
 
     return red_transparent_blue
   
-  def SaliencyAttributionToImage(self, saliency_attribution):
-    #img = np.sum(saliency_attribution, axis=2)
+  def InnvestigateAttributionToImage(self, innvestigate_attribution):
+    img = np.sum(innvestigate_attribution, axis=2)
     
-    return saliency_attribution*255
+    return img*255
 
-  def GenerateSaliencyExplanationImage(self,input_image,explanation_values):
+  def GenerateInnvestigateExplanationImage(self,input_image,explanation_values):
     # print(np.max(explanation_values))
     # print(np.min(explanation_values))
     # print("explanation_values.shape",explanation_values.shape)
@@ -107,42 +109,21 @@ class SaliencyExplainer(object):
     if(len(input_image.shape) == 3):
         input_image = np.array([input_image])      
     
-    prediction_scores, prediction = self.model.Predict(input_image, True)
-    predicted_class = np.argmax(prediction_scores)
-    #print("explanation prediction output",prediction)
-    #print("explanation predicted_class",predicted_class)
-
-    ####LRP
-    prediction_mask = [0]* self.model.n_classes
-    prediction_mask[predicted_class] = 1
-    prediction_mask = np.array(prediction_mask)
-
-    #print(prediction_mask)
-    
     try:
       input_image = self.model.CheckInputArrayAndResize(input_image,self.model.min_height,self.model.min_width)
     except:
       print("couldn't use model image size check")    
     
-    attributions = None
+    fmodel = innvestigate.utils.model_wo_softmax(self.model.model)
+    analyzer = innvestigate.create_analyzer(self.explanation_method, fmodel, neuron_selection_mode="index")
 
-    # 1. Get the input tensor to the original model
-    #input_tensor = self.model.model.layers[0].input
-    
-    # 2. We now target the output of the last dense layer (pre-softmax)
-    # To do so, create a new model sharing the same layers untill the last dense (index -2)
-    #fModel = Model(inputs=input_tensor, outputs = self.model.model.layers[-2].output)
-    #target_tensor = fModel(input_tensor)
-    
+    prediction_scores,prediction  = self.model.Predict(input_image, True)
+    print(prediction)
+    print(prediction_scores)
+    predicted_class = np.argmax(prediction_scores)
 
-    #attributions = de.explain('elrp', target_tensor , input_tensor, input_image)
-    attributions = visualize_saliency(model, -2, filter_indices=predicted_class, seed_input=input_image)
-
-
-    saliency_explanation = self.SaliencyAttributionToImage(attributions)
-    
-    explanation_image = self.GenerateSaliencyExplanationImage(input_image,saliency_explanation[:])
-    explanation_image = cv2.cvtColor(explanation_image, cv2.COLOR_RGB2BGR)
+    innvestigate_values = [analyzer.analyze(input_image, predicted_class)]
+    print(innvestigate_values[0].shape)
 
     # cv2_image = cv2.cvtColor(explanation_image, cv2.COLOR_RGB2BGR)
     # cv2.imshow("explanation_image LRP",cv2_image)
@@ -153,19 +134,15 @@ class SaliencyExplainer(object):
 
     if(not isinstance(prediction_scores,list)):
       prediction_scores = prediction_scores.tolist()
-    
-    attributions_list = attributions.tolist()
-    attributions_list = attributions_list[0]
-        
-    additional_outputs = {
-        "attribution_map":attributions_list, 
-        "lrp_values":[lrp_value.tolist() for lrp_value in attributions],
-        "prediction_scores":prediction_scores[0]
-    }
 
-    explanation_text = "Evidence towards predicted class shown in blue, evidence against shown in red."
+    attributions_list = [innv_value.tolist() for innv_value in innvestigate_values]
+    attributions_list = attributions_list[0][0]
+        
+    additional_outputs = {"attribution_map":attributions_list, "innvestigate_values":[innv_value.tolist() for innv_value in innvestigate_values],"prediction_scores":prediction_scores}
+
+    explanation_text = "Evidence towards predicted class shown in red."
     
-    return explanation_image, explanation_text, predicted_class, additional_outputs
+    return None, explanation_text, predicted_class, additional_outputs
   
 
 

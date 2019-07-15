@@ -106,6 +106,158 @@
 		],
 		"license":"apache 2"
 		},
+		{"explanation_name":"DeepTaylor",
+		"script_name":"deep_taylor_explanation",
+		"class_name":"DeepTaylorExplainer",
+		"compatible_models":[
+			{"model_name":"keras_cnn"},
+			{"model_name":"keras_api_vgg"},
+			{"model_name":"keras_api_simple"},
+			{"model_name":"vgg16_imagenet"},
+			{"model_name":"vgg19_imagenet"},
+			{"model_name":"inception_v3_imagenet"},
+			{"model_name":"inception_resnet_v2_imagenet"},
+			{"model_name":"mobilenet_imagenet"},
+			{"model_name":"xception_imagenet"},
+			{"model_name":"vgg16"},
+			{"model_name":"vgg16_richard"}
+			],
+		"compatible_datasets":[
+			{"dataset_name":"Gun Wielding Image Classification"},
+			{"dataset_name":"Traffic Congestion Image Classification"},
+			{"dataset_name":"Traffic Congestion Image Classification (Resized)"},
+			{"dataset_name":"CIFAR-10"},
+			{"dataset_name":"CIFAR-10-original"},
+			{"dataset_name":"ImageNet 20 Class (Resized)"},
+			{"dataset_name":"ImageNet 10 Class (Resized)"},
+			{"dataset_name":"ImageNet Vehicles Birds 10 Class (Resized)"},
+			{"dataset_name":"SVRT Problem 1"}			
+				],
+		"modality":"imagery",
+		"description":"",
+		"additional_arguments":[
+		],
+		"additional_outputs":[
+			{"name":"innvestigate_values",
+			"description":""
+			}
+		],
+		"license":"BSD-2"
+		},
+		{"explanation_name":"Gradient",
+		"script_name":"gradient_explanation",
+		"class_name":"GradientExplainer",
+		"compatible_models":[
+			{"model_name":"keras_cnn"},
+			{"model_name":"keras_api_vgg"},
+			{"model_name":"keras_api_simple"},
+			{"model_name":"vgg16_imagenet"},
+			{"model_name":"vgg19_imagenet"},
+			{"model_name":"inception_v3_imagenet"},
+			{"model_name":"inception_resnet_v2_imagenet"},
+			{"model_name":"mobilenet_imagenet"},
+			{"model_name":"xception_imagenet"},
+			{"model_name":"vgg16"},
+			{"model_name":"vgg16_richard"}
+			],
+		"compatible_datasets":[
+			{"dataset_name":"Gun Wielding Image Classification"},
+			{"dataset_name":"Traffic Congestion Image Classification"},
+			{"dataset_name":"Traffic Congestion Image Classification (Resized)"},
+			{"dataset_name":"CIFAR-10"},
+			{"dataset_name":"CIFAR-10-original"},
+			{"dataset_name":"ImageNet 20 Class (Resized)"},
+			{"dataset_name":"ImageNet 10 Class (Resized)"},
+			{"dataset_name":"ImageNet Vehicles Birds 10 Class (Resized)"},
+			{"dataset_name":"SVRT Problem 1"}			
+				],
+		"modality":"imagery",
+		"description":"",
+		"additional_arguments":[
+		],
+		"additional_outputs":[
+			{"name":"innvestigate_values",
+			"description":""
+			}
+		],
+		"license":"BSD-2"
+		},
+		{"explanation_name":"SmoothGrad",
+		"script_name":"smoothgrad_explanation",
+		"class_name":"SmoothGradExplainer",
+		"compatible_models":[
+			{"model_name":"keras_cnn"},
+			{"model_name":"keras_api_vgg"},
+			{"model_name":"keras_api_simple"},
+			{"model_name":"vgg16_imagenet"},
+			{"model_name":"vgg19_imagenet"},
+			{"model_name":"inception_v3_imagenet"},
+			{"model_name":"inception_resnet_v2_imagenet"},
+			{"model_name":"mobilenet_imagenet"},
+			{"model_name":"xception_imagenet"},
+			{"model_name":"vgg16"},
+			{"model_name":"vgg16_richard"}
+			],
+		"compatible_datasets":[
+			{"dataset_name":"Gun Wielding Image Classification"},
+			{"dataset_name":"Traffic Congestion Image Classification"},
+			{"dataset_name":"Traffic Congestion Image Classification (Resized)"},
+			{"dataset_name":"CIFAR-10"},
+			{"dataset_name":"CIFAR-10-original"},
+			{"dataset_name":"ImageNet 20 Class (Resized)"},
+			{"dataset_name":"ImageNet 10 Class (Resized)"},
+			{"dataset_name":"ImageNet Vehicles Birds 10 Class (Resized)"},
+			{"dataset_name":"SVRT Problem 1"}			
+				],
+		"modality":"imagery",
+		"description":"",
+		"additional_arguments":[
+		],
+		"additional_outputs":[
+			{"name":"innvestigate_values",
+			"description":""
+			}
+		],
+		"license":"BSD-2"
+		},
+		{"explanation_name":"InputTimesGradient",
+		"script_name":"input_times_gradient_explanation",
+		"class_name":"InputTimesGradientExplainer",
+		"compatible_models":[
+			{"model_name":"keras_cnn"},
+			{"model_name":"keras_api_vgg"},
+			{"model_name":"keras_api_simple"},
+			{"model_name":"vgg16_imagenet"},
+			{"model_name":"vgg19_imagenet"},
+			{"model_name":"inception_v3_imagenet"},
+			{"model_name":"inception_resnet_v2_imagenet"},
+			{"model_name":"mobilenet_imagenet"},
+			{"model_name":"xception_imagenet"},
+			{"model_name":"vgg16"},
+			{"model_name":"vgg16_richard"}
+			],
+		"compatible_datasets":[
+			{"dataset_name":"Gun Wielding Image Classification"},
+			{"dataset_name":"Traffic Congestion Image Classification"},
+			{"dataset_name":"Traffic Congestion Image Classification (Resized)"},
+			{"dataset_name":"CIFAR-10"},
+			{"dataset_name":"CIFAR-10-original"},
+			{"dataset_name":"ImageNet 20 Class (Resized)"},
+			{"dataset_name":"ImageNet 10 Class (Resized)"},
+			{"dataset_name":"ImageNet Vehicles Birds 10 Class (Resized)"},
+			{"dataset_name":"SVRT Problem 1"}			
+				],
+		"modality":"imagery",
+		"description":"",
+		"additional_arguments":[
+		],
+		"additional_outputs":[
+			{"name":"innvestigate_values",
+			"description":""
+			}
+		],
+		"license":"BSD-2"
+		},
 		{"explanation_name":"Influence Functions",
 		"script_name":"influence_explanations",
 		"class_name":"InfluenceExplainer",
