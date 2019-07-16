@@ -2,6 +2,7 @@ import sys
 innvestigate_path = "../innvestigate/"
 sys.path.append(innvestigate_path)
 from innvestigate_explanation import *
+import numpy as np
 
 class GradientExplainer(InnvestigateExplainer):
   """docstring for GradientExplainer"""
@@ -16,7 +17,13 @@ class GradientExplainer(InnvestigateExplainer):
 
     
   def Explain(self,input_image, additional_args = {}):
-    return super(GradientExplainer, self).Explain(input_image, additional_args=additional_args)
+    _, explanation_text, predicted_class, additional_outputs = super(GradientExplainer, self).Explain(input_image, additional_args=additional_args)
+
+    am = np.array(additional_outputs["attribution_map"])
+    am = np.max(np.abs(am), axis=2) / 3.0 # divide by 3 because we sum to get total attribution value later on
+    am = np.stack((am,)*3, axis=-1).tolist()
+    additional_outputs["attribution_map"] = am
+    return _, explanation_text, predicted_class, additional_outputs
 
 
 if __name__ == '__main__':
