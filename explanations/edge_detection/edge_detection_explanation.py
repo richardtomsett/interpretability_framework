@@ -116,7 +116,8 @@ class EdgeDetectionExplainer(object):
     print(prediction_scores)
     predicted_class = np.argmax(prediction_scores)
 
-    sobel_values = [filters.sobel(rgb2gray(input_image[0]))]
+    sobel_values = filters.sobel(rgb2gray(input_image[0]))
+    sobel_values = [sobel_values / np.sum(sobel_values)]
     print(sobel_values[0].shape)
 
     # cv2_image = cv2.cvtColor(explanation_image, cv2.COLOR_RGB2BGR)
