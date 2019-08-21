@@ -130,7 +130,7 @@ class EdgeDetectionExplainer(object):
       prediction_scores = prediction_scores.tolist()
 
     attributions_list = [sobel_value.tolist() for sobel_value in sobel_values]
-    attributions_list = attributions_list[0][0]
+    attributions_list = attributions_list[0]
         
     additional_outputs = {"attribution_map":attributions_list, "sobel_values":[sobel_value.tolist() for sobel_value in sobel_values],"prediction_scores":prediction_scores}
 
