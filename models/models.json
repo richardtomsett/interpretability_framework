@@ -407,6 +407,33 @@
 			"description":"A keras api mini-VGG16 style CNN feature descriptor trained on CIFAR-10.",
 			"license":"apache 2"
 			},
+			{"model_name":"vgg16_richard_nobias",
+				"script_name":"vgg16_richard_nobias",
+				"class_name":"VGG16RichardNoBias",
+				"trained_on":[
+					{"dataset_name":"CIFAR-10-original",
+					"model_path":"saved_models/cifar-10-original",
+					"training_allocation_path":"dataset_csvs/cifar-10-original_train_split.csv",
+					"test_accuracy":0.1,
+					"training_time":1,
+					"training_steps":1
+					}
+				],
+				"layers":[
+					
+				],
+				"additional_arguments":[
+					{"name":"learning_rate",
+					"description":""
+					},
+					{"name":"dropout",
+					"description":""
+					}
+				],
+				"references":["https://keras.io/applications/"],
+				"description":"A keras api mini-VGG16 style CNN feature descriptor trained on CIFAR-10.",
+				"license":"apache 2"
+				},
 		{"model_name":"vgg19_imagenet",
 		"script_name":"vgg19_imagenet",
 		"class_name":"VGG19Imagenet",
