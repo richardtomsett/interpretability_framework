@@ -22,12 +22,12 @@ from keras.applications.vgg16 import VGG16
 from keras.layers import GlobalAveragePooling2D
 
 
-class VGG16RichardNoBias(object):
+class VGG16RichardNoBiasSoftlabels(object):
     """VGG16 CNN feature descriptor (fully trained) with re-trained fully connected layers"""
 
     def __init__(self, model_input_dim_height, model_input_dim_width, model_input_channels, n_classes, model_dir,
                  additional_args={}):
-        super(VGG16RichardNoBias, self).__init__()
+        super(VGG16RichardNoBiasSoftlabels, self).__init__()
         # model specific variables
         self.min_height = 32
         self.min_width = 32
