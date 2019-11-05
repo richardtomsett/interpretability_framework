@@ -186,7 +186,7 @@ class VGG16RichardNoBias(object):
         model.add(Conv2D(32, (3, 3), \
             kernel_regularizer=regularizers.l2(weight_decay), \
             padding='same', \
-            use_bias=False)))
+            use_bias=False))
         model.add(Activation('relu'))
         model.add(BatchNormalization())
         model.add(MaxPooling2D(2,2))
@@ -196,13 +196,13 @@ class VGG16RichardNoBias(object):
             kernel_regularizer=regularizers.l2(weight_decay), \
             padding='same', \
             input_shape=self.x_shape, \
-            use_bias=False)))
+            use_bias=False))
         model.add(Activation('relu'))
         model.add(BatchNormalization())
         model.add(Conv2D(64, (3, 3), \
             kernel_regularizer=regularizers.l2(weight_decay), \
             padding='same', \
-            use_bias=False)))
+            use_bias=False))
         model.add(Activation('relu'))
         model.add(BatchNormalization())
         model.add(MaxPooling2D(2,2))
@@ -212,13 +212,13 @@ class VGG16RichardNoBias(object):
             kernel_regularizer=regularizers.l2(weight_decay), \
             padding='same', \
             input_shape=self.x_shape, \
-            use_bias=False)))
+            use_bias=False))
         model.add(Activation('relu'))
         model.add(BatchNormalization())
         model.add(Conv2D(128, (3, 3), \
             kernel_regularizer=regularizers.l2(weight_decay), \
             padding='same', \
-            use_bias=False)))
+            use_bias=False))
         model.add(Activation('relu'))
         model.add(BatchNormalization())
         model.add(MaxPooling2D(2,2))
@@ -227,7 +227,7 @@ class VGG16RichardNoBias(object):
         model.add(Flatten())
 
         model.add(Dense(n_classes, \
-            use_bias=False)))
+            use_bias=False))
         model.add(Activation('softmax'))
         return model
 
